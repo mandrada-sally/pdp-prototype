@@ -970,10 +970,16 @@
     max-width: 100%;
     max-height: 100%;
     object-fit: contain;
+    opacity: 1;
     transform: scale(1);
     transform-origin: center;
+    transition: opacity 180ms ease;
     user-select: none;
     -webkit-user-drag: none;
+  }
+  .lightbox-image.fading { opacity: 0; }
+  @media (prefers-reduced-motion: reduce) {
+    .lightbox-image { transition-duration: 0.01ms; }
   }
   .lightbox-arrow {
     position: absolute;
@@ -1421,6 +1427,7 @@ window.IMG_DATA = {
   const lightboxThumbs = document.getElementById('lightboxThumbnails');
   let activeIdx = 0;
   let lastGalleryTrigger = null;
+  let lightboxFadeTimer = null;
 
   function buildThumbs() {
     thumbsEl.innerHTML = '';
@@ -1462,8 +1469,19 @@ window.IMG_DATA = {
 
     // Keep zoom layer in sync with current image
     zoomLayer.style.backgroundImage = `url("${images[i].full}")`;
-    lightboxImage.src = toDataURL(images[i].full);
-    lightboxImage.alt = images[i].alt;
+    clearTimeout(lightboxFadeTimer);
+    if (lightbox.classList.contains('open')) {
+      lightboxImage.classList.add('fading');
+      lightboxFadeTimer = setTimeout(() => {
+        lightboxImage.src = toDataURL(images[i].full);
+        lightboxImage.alt = images[i].alt;
+        requestAnimationFrame(() => lightboxImage.classList.remove('fading'));
+      }, 90);
+    } else {
+      lightboxImage.src = toDataURL(images[i].full);
+      lightboxImage.alt = images[i].alt;
+      lightboxImage.classList.remove('fading');
+    }
     lightboxCount.textContent = `${i + 1} / ${images.length}`;
 
     document.querySelectorAll('.thumb').forEach((t, idx) => {
