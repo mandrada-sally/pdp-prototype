@@ -943,7 +943,13 @@
     justify-content: space-between;
     min-height: 44px;
   }
-  .lightbox-count { font-size: 14px; }
+  .lightbox-count {
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(0,0,0,.55);
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+  }
   .lightbox-control {
     display: inline-flex;
     align-items: center;
@@ -953,10 +959,10 @@
     padding: 0;
     border: 1px solid rgba(255,255,255,.35);
     border-radius: 999px;
-    background: rgba(255,255,255,.12);
+    background: rgba(0,0,0,.5);
     color: #fff;
   }
-  .lightbox-control:hover { background: rgba(255,255,255,.24); }
+  .lightbox-control:hover { background: rgba(0,0,0,.72); }
   .lightbox-stage {
     position: relative;
     min-height: 0;
@@ -1023,6 +1029,17 @@
     .lightbox-thumb { flex-basis: 60px; height: 60px; }
     .lightbox-arrow.prev { left: 8px; }
     .lightbox-arrow.next { right: 8px; }
+    .gallery-lightbox.mobile-zoomed { display: block; padding: 0; }
+    .mobile-zoomed .lightbox-toolbar {
+      position: absolute;
+      z-index: 2;
+      top: max(10px, env(safe-area-inset-top));
+      right: 10px;
+      left: 10px;
+      min-height: 44px;
+    }
+    .mobile-zoomed .lightbox-stage { position: absolute; inset: 0; }
+    .mobile-zoomed .lightbox-thumbnails { display: none; }
   }
 </style>
 </head>
@@ -1530,6 +1547,7 @@ window.IMG_DATA = {
     lightboxPanX = 0;
     lightboxPanY = 0;
     lightboxImage.style.transform = 'translate(0px, 0px) scale(1)';
+    lightbox.classList.remove('mobile-zoomed');
   }
 
   let lightboxZoom = 1;
@@ -1609,6 +1627,7 @@ window.IMG_DATA = {
         1,
         4
       );
+      lightbox.classList.toggle('mobile-zoomed', lightboxZoom > 1.02);
       updateLightboxTransform();
       e.preventDefault();
       return;
