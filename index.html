@@ -328,6 +328,20 @@
   .main-image.zooming {
     cursor: zoom-out;
   }
+  .main-image-count {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 2;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, .58);
+    color: #fff;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
+    pointer-events: none;
+  }
   .main-image-arrow {
     position: absolute;
     top: 50%;
@@ -1160,6 +1174,7 @@
         </button>
         <img id="mainImg" alt="ColorLast Shampoo" />
         <div class="zoom-layer" id="zoomLayer" aria-hidden="true"></div>
+        <span class="main-image-count" id="mainImageCount" aria-live="polite"></span>
         <button class="main-image-arrow next" aria-label="Next image" id="mainNext">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="9 18 15 12 9 6"/>
@@ -1392,6 +1407,7 @@
   const lightboxImage = document.getElementById('lightboxImage');
   const lightboxStage = document.getElementById('lightboxStage');
   const lightboxCount = document.getElementById('lightboxCount');
+  const mainImageCount = document.getElementById('mainImageCount');
   const lightboxThumbs = document.getElementById('lightboxThumbnails');
   let activeIdx = 0;
   let lastGalleryTrigger = null;
@@ -1450,6 +1466,8 @@
       lightboxImage.alt = images[i].alt;
       lightboxImage.classList.remove('fading');
     }
+    mainImageCount.textContent = `${i + 1} / ${images.length}`;
+    mainImageCount.setAttribute('aria-label', `Photo ${i + 1} of ${images.length}`);
     lightboxCount.textContent = `${i + 1} / ${images.length}`;
 
     document.querySelectorAll('.thumb').forEach((t, idx) => {
