@@ -359,6 +359,12 @@
     z-index: 2;
   }
   .main-image-arrow:hover { background: #f3f4f6; }
+  .main-image-arrow:disabled,
+  .main-image-arrow:disabled:hover {
+    opacity: .35;
+    cursor: not-allowed;
+    background: rgba(255,255,255,0.95);
+  }
   .main-image-arrow.prev { left: 12px; }
   .main-image-arrow.next { right: 12px; }
 
@@ -942,6 +948,12 @@
     color: #fff;
   }
   .lightbox-control:hover { background: rgba(0,0,0,.72); }
+  .lightbox-control:disabled,
+  .lightbox-control:disabled:hover {
+    opacity: .35;
+    cursor: not-allowed;
+    background: rgba(0,0,0,.5);
+  }
   .lightbox-stage {
     position: relative;
     min-height: 0;
@@ -1409,6 +1421,10 @@
   const lightboxCount = document.getElementById('lightboxCount');
   const mainImageCount = document.getElementById('mainImageCount');
   const lightboxThumbs = document.getElementById('lightboxThumbnails');
+  const mainPrev = document.getElementById('mainPrev');
+  const mainNext = document.getElementById('mainNext');
+  const lightboxPrev = document.getElementById('lightboxPrev');
+  const lightboxNext = document.getElementById('lightboxNext');
   let activeIdx = 0;
   let lastGalleryTrigger = null;
   let lightboxFadeTimer = null;
@@ -1439,10 +1455,11 @@
   }
 
   function setActive(i) {
-    if (i < 0) i = images.length - 1;
-    if (i >= images.length) i = 0;
-    activeIdx = i;
+    activeIdx = Math.max(0, Math.min(images.length - 1, i));
+    i = activeIdx;
     resetLightboxZoom();
+    mainPrev.disabled = lightboxPrev.disabled = i === 0;
+    mainNext.disabled = lightboxNext.disabled = i === images.length - 1;
 
     mainImg.classList.add('fading');
     setTimeout(() => {
@@ -1492,6 +1509,8 @@
 
   const canHover = window.matchMedia('(hover: hover) and (pointer: fine)');
   let touchZoom = 1;
+  let touchPanX = 0;
+  let touchPanY = 0;
 
   function resetTouchZoom() {
     if (canHover.matches) return;
@@ -1564,8 +1583,8 @@
     openLightbox();
   });
   document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
-  document.getElementById('lightboxPrev').addEventListener('click', () => setActive(activeIdx - 1));
-  document.getElementById('lightboxNext').addEventListener('click', () => setActive(activeIdx + 1));
+  lightboxPrev.addEventListener('click', () => setActive(activeIdx - 1));
+  lightboxNext.addEventListener('click', () => setActive(activeIdx + 1));
 
   lightbox.addEventListener('click', (e) => {
     if (e.target === lightbox) closeLightbox();
@@ -1647,6 +1666,8 @@
     const rect = mainFrame.getBoundingClientRect();
     const x = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
     const y = Math.max(0, Math.min(100, ((clientY - rect.top) / rect.height) * 100));
+    touchPanX = x;
+    touchPanY = y;
     zoomLayer.style.backgroundPosition = `${x}% ${y}%`;
   }
 
@@ -1676,7 +1697,12 @@
     if (e.target.closest('button')) return;
     if (e.touches.length === 1 && !pinching) {
       const t = e.touches[0];
-      touchStart = { x: t.clientX, y: t.clientY };
+      touchStart = {
+        x: t.clientX,
+        y: t.clientY,
+        panX: touchPanX,
+        panY: touchPanY
+      };
     } else if (e.touches.length === 2) {
       pinching = true;
       touchStart = null;
@@ -1708,7 +1734,15 @@
     if (!t) return;
 
     if (touchZoom > 1.02) {
-      panZoom(t.clientX, t.clientY);
+      if (!touchStart) return;
+      const rect = mainFrame.getBoundingClientRect();
+      const overflowX = Math.max(1, rect.width * (touchZoom - 1));
+      const overflowY = Math.max(1, rect.height * (touchZoom - 1));
+      const dx = t.clientX - touchStart.x;
+      const dy = t.clientY - touchStart.y;
+      touchPanX = clamp(touchStart.panX - dx / overflowX * 100, 0, 100);
+      touchPanY = clamp(touchStart.panY - dy / overflowY * 100, 0, 100);
+      zoomLayer.style.backgroundPosition = `${touchPanX}% ${touchPanY}%`;
       e.preventDefault();
     } else if (touchStart) {
       const dx = t.clientX - touchStart.x;
@@ -1742,8 +1776,8 @@
     resetTouchZoom();
   });
 
-  document.getElementById('mainPrev').addEventListener('click', () => setActive(activeIdx - 1));
-  document.getElementById('mainNext').addEventListener('click', () => setActive(activeIdx + 1));
+  mainPrev.addEventListener('click', () => setActive(activeIdx - 1));
+  mainNext.addEventListener('click', () => setActive(activeIdx + 1));
 
   document.getElementById('thumbPrev').addEventListener('click', () => {
     thumbsEl.scrollBy({ left: -200, behavior: 'smooth' });
