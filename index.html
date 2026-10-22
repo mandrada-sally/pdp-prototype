@@ -307,6 +307,49 @@
     transition: opacity 220ms ease;
   }
   .main-image img.fading { opacity: 0; }
+  .gallery-video {
+    display: none;
+    border: 0;
+    background: #000;
+  }
+  .video-fallback {
+    position: relative;
+    display: none;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: #000;
+  }
+  .video-fallback img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  .video-fallback-play {
+    position: absolute;
+    display: flex;
+    width: 68px;
+    height: 48px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    background: #f00;
+  }
+  .video-fallback-play::after {
+    content: "";
+    margin-left: 4px;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-left: 16px solid #fff;
+  }
+  .main-gallery-video {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+  }
+  .main-image.video-active { cursor: pointer; }
 
   /* Hover-zoom layer */
   .zoom-layer {
@@ -395,6 +438,7 @@
     flex: 1;
   }
   .thumb {
+    position: relative;
     flex: 0 0 92px;
     height: 92px;
     border: 1px solid var(--border);
@@ -411,6 +455,26 @@
     max-width: 100%;
     max-height: 100%;
     object-fit: contain;
+  }
+  .video-thumb::before {
+    content: "";
+    position: absolute;
+    width: 28px;
+    height: 22px;
+    border-radius: 7px;
+    background: rgba(0, 0, 0, .75);
+    pointer-events: none;
+  }
+  .video-thumb::after {
+    content: "";
+    position: absolute;
+    width: 0;
+    height: 0;
+    margin-left: 2px;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-left: 9px solid #fff;
+    pointer-events: none;
   }
   .thumb.active {
     border-color: var(--black);
@@ -975,6 +1039,12 @@
     -webkit-user-drag: none;
   }
   .lightbox-image.fading { opacity: 0; }
+  .lightbox-gallery-video {
+    width: min(100%, 1280px);
+    height: auto;
+    aspect-ratio: 16 / 9;
+    max-height: 100%;
+  }
   @media (prefers-reduced-motion: reduce) {
     .lightbox-image { transition-duration: 0.01ms; }
   }
@@ -1014,9 +1084,10 @@
     max-height: 100%;
     object-fit: contain;
   }
+  .lightbox-thumb.video-thumb { position: relative; }
   @media (max-width: 767px) {
     .gallery-lightbox { padding: max(10px, env(safe-area-inset-top)) 10px max(12px, env(safe-area-inset-bottom)); }
-    .lightbox-thumbnails { justify-content: flex-start; gap: 8px; }
+    .lightbox-thumbnails { justify-content: safe center; gap: 8px; }
     .lightbox-thumb { flex-basis: 60px; height: 60px; }
     .lightbox-arrow.prev { left: 8px; }
     .lightbox-arrow.next { right: 8px; }
@@ -1185,6 +1256,14 @@
           </svg>
         </button>
         <img id="mainImg" alt="ColorLast Shampoo" />
+        <iframe id="mainVideo" class="gallery-video main-gallery-video" title="ColorLast Shampoo video"
+          allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share"
+          referrerpolicy="origin" allowfullscreen></iframe>
+        <a id="mainVideoFallback" class="video-fallback" target="_blank" rel="noopener noreferrer"
+          aria-label="Open ColorLast Shampoo video on YouTube">
+          <img src="https://img.youtube.com/vi/t0QX_kpqjuA/hqdefault.jpg" alt="" />
+          <span class="video-fallback-play" aria-hidden="true"></span>
+        </a>
         <div class="zoom-layer" id="zoomLayer" aria-hidden="true"></div>
         <span class="main-image-count" id="mainImageCount" aria-live="polite"></span>
         <button class="main-image-arrow next" aria-label="Next image" id="mainNext">
@@ -1387,6 +1466,14 @@
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
     </button>
     <img class="lightbox-image" id="lightboxImage" alt="" draggable="false" />
+    <iframe id="lightboxVideo" class="gallery-video lightbox-gallery-video" title="ColorLast Shampoo video"
+      allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share"
+      referrerpolicy="origin" allowfullscreen></iframe>
+    <a id="lightboxVideoFallback" class="video-fallback" target="_blank" rel="noopener noreferrer"
+      aria-label="Open ColorLast Shampoo video on YouTube">
+      <img src="https://img.youtube.com/vi/t0QX_kpqjuA/hqdefault.jpg" alt="" />
+      <span class="video-fallback-play" aria-hidden="true"></span>
+    </a>
     <button class="lightbox-control lightbox-arrow next" id="lightboxNext" type="button" aria-label="Next image">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
     </button>
@@ -1400,6 +1487,7 @@
   const D = window.IMG_DATA;
   const images = [
     { full: D.img1, thumb: D.img1, alt: 'ColorLast Shampoo bottle — front' },
+    { type: 'video', videoId: 't0QX_kpqjuA', thumb: 'https://img.youtube.com/vi/t0QX_kpqjuA/hqdefault.jpg', alt: 'ColorLast Shampoo video' },
     { full: D.img2, thumb: D.img2, alt: 'ColorLast Shampoo — before and after results' },
     { full: D.img3, thumb: D.img3, alt: 'Pamela Anderson for Biolage' },
     { full: D.img4, thumb: D.img4, alt: 'ColorLast Shampoo helps prevent color fade' },
@@ -1411,12 +1499,17 @@
   document.getElementById('bannerImg').src = D.banner;
 
   const toDataURL = (src) => src;
+  const youtubeEmbedUrl = (videoId) => `https://www.youtube.com/embed/${videoId}?playsinline=1&rel=0&origin=${encodeURIComponent(window.location.origin)}&widget_referrer=${encodeURIComponent(window.location.href)}`;
 
   // ========= GALLERY STATE =========
   const mainImg = document.getElementById('mainImg');
+  const mainVideo = document.getElementById('mainVideo');
+  const mainVideoFallback = document.getElementById('mainVideoFallback');
   const thumbsEl = document.getElementById('thumbs');
   const lightbox = document.getElementById('galleryLightbox');
   const lightboxImage = document.getElementById('lightboxImage');
+  const lightboxVideo = document.getElementById('lightboxVideo');
+  const lightboxVideoFallback = document.getElementById('lightboxVideoFallback');
   const lightboxStage = document.getElementById('lightboxStage');
   const lightboxCount = document.getElementById('lightboxCount');
   const mainImageCount = document.getElementById('mainImageCount');
@@ -1436,6 +1529,7 @@
       b.className = 'thumb' + (i === 0 ? ' active' : '');
       b.setAttribute('aria-label', `Show image ${i+1}`);
       b.dataset.idx = i;
+      b.classList.toggle('video-thumb', img.type === 'video');
       b.innerHTML = `<img src="${toDataURL(img.thumb)}" alt="${img.alt}" />`;
       b.addEventListener('click', () => setActive(i));
       thumbsEl.appendChild(b);
@@ -1457,31 +1551,64 @@
   function setActive(i) {
     activeIdx = Math.max(0, Math.min(images.length - 1, i));
     i = activeIdx;
+    const current = images[i];
+    const isVideo = current.type === 'video';
     resetLightboxZoom();
+    if (isVideo) {
+      touchZoom = 1;
+      mainFrame.classList.remove('zooming');
+      zoomLayer.style.backgroundSize = '220%';
+    }
     mainPrev.disabled = lightboxPrev.disabled = i === 0;
     mainNext.disabled = lightboxNext.disabled = i === images.length - 1;
+    mainFrame.classList.toggle('video-active', isVideo);
 
     mainImg.classList.add('fading');
     setTimeout(() => {
-      mainImg.src = toDataURL(images[i].full);
-      mainImg.alt = images[i].alt;
+      if (activeIdx !== i || isVideo) return;
+      mainImg.src = toDataURL(current.full);
+      mainImg.alt = current.alt;
+      mainImg.style.display = '';
       mainImg.classList.remove('fading');
     }, 160);
 
-    // Keep zoom layer in sync with current image
-    zoomLayer.style.backgroundImage = `url("${images[i].full}")`;
+    const useLocalFallback = window.location.protocol === 'file:';
+    mainVideo.style.display = isVideo && !useLocalFallback && !lightbox.classList.contains('open') ? 'block' : 'none';
+    mainVideo.src = isVideo && !useLocalFallback && !lightbox.classList.contains('open') ? youtubeEmbedUrl(current.videoId) : '';
+    mainVideoFallback.style.display = isVideo && useLocalFallback && !lightbox.classList.contains('open') ? 'flex' : 'none';
+    mainVideoFallback.href = `https://www.youtube.com/watch?v=${current.videoId}`;
+    mainImg.style.display = isVideo ? 'none' : '';
+    zoomLayer.style.backgroundImage = isVideo ? '' : `url("${current.full}")`;
     clearTimeout(lightboxFadeTimer);
     if (lightbox.classList.contains('open')) {
-      lightboxImage.classList.add('fading');
-      lightboxFadeTimer = setTimeout(() => {
-        lightboxImage.src = toDataURL(images[i].full);
-        lightboxImage.alt = images[i].alt;
-        requestAnimationFrame(() => lightboxImage.classList.remove('fading'));
-      }, 90);
+      lightboxVideo.style.display = isVideo && !useLocalFallback ? 'block' : 'none';
+      lightboxVideo.src = isVideo && !useLocalFallback ? youtubeEmbedUrl(current.videoId) : '';
+      lightboxVideoFallback.style.display = isVideo && useLocalFallback ? 'flex' : 'none';
+      lightboxVideoFallback.href = `https://www.youtube.com/watch?v=${current.videoId}`;
+      lightboxImage.style.display = isVideo ? 'none' : '';
+      if (isVideo) {
+        lightboxImage.classList.remove('fading');
+      } else {
+        lightboxImage.classList.add('fading');
+        lightboxFadeTimer = setTimeout(() => {
+          if (activeIdx !== i) return;
+          lightboxImage.src = toDataURL(current.full);
+          lightboxImage.alt = current.alt;
+          requestAnimationFrame(() => lightboxImage.classList.remove('fading'));
+        }, 90);
+      }
     } else {
-      lightboxImage.src = toDataURL(images[i].full);
-      lightboxImage.alt = images[i].alt;
-      lightboxImage.classList.remove('fading');
+      lightboxVideo.style.display = 'none';
+      lightboxVideo.src = '';
+      lightboxVideoFallback.style.display = 'none';
+      if (isVideo) {
+        lightboxImage.style.display = 'none';
+      } else {
+        lightboxImage.style.display = '';
+        lightboxImage.src = toDataURL(current.full);
+        lightboxImage.alt = current.alt;
+        lightboxImage.classList.remove('fading');
+      }
     }
     mainImageCount.textContent = `${i + 1} / ${images.length}`;
     mainImageCount.setAttribute('aria-label', `Photo ${i + 1} of ${images.length}`);
@@ -1553,9 +1680,9 @@
 
   function openLightbox() {
     lastGalleryTrigger = mainFrame;
-    setActive(activeIdx);
     lightbox.classList.add('open');
     lightbox.setAttribute('aria-hidden', 'false');
+    setActive(activeIdx);
     document.body.style.overflow = 'hidden';
     document.getElementById('lightboxClose').focus();
   }
@@ -1565,6 +1692,7 @@
     lightbox.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
     resetLightboxZoom();
+    setActive(activeIdx);
     if (lastGalleryTrigger && typeof lastGalleryTrigger.focus === 'function') lastGalleryTrigger.focus();
   }
 
@@ -1573,13 +1701,14 @@
     thumb.className = 'lightbox-thumb' + (i === 0 ? ' active' : '');
     thumb.type = 'button';
     thumb.setAttribute('aria-label', `Show image ${i + 1}`);
+    thumb.classList.toggle('video-thumb', img.type === 'video');
     thumb.innerHTML = `<img src="${toDataURL(img.thumb)}" alt="" />`;
     thumb.addEventListener('click', () => setActive(i));
     lightboxThumbs.appendChild(thumb);
   });
 
   mainFrame.addEventListener('click', (e) => {
-    if (e.target.closest('button') || Date.now() < ignoreLightboxClickUntil) return;
+    if (e.target.closest('button, a') || Date.now() < ignoreLightboxClickUntil) return;
     openLightbox();
   });
   document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
@@ -1591,6 +1720,7 @@
   });
 
   lightboxStage.addEventListener('touchstart', (e) => {
+    if (images[activeIdx].type === 'video') return;
     if (e.touches.length === 2) {
       lightboxPinching = true;
       lightboxGesture = null;
@@ -1608,6 +1738,7 @@
   }, { passive: true });
 
   lightboxStage.addEventListener('touchmove', (e) => {
+    if (images[activeIdx].type === 'video') return;
     if (e.touches.length === 2) {
       lightboxPinching = true;
       lightboxZoom = clamp(
@@ -1637,6 +1768,7 @@
   }, { passive: false });
 
   lightboxStage.addEventListener('touchend', (e) => {
+    if (images[activeIdx].type === 'video') return;
     if (lightboxPinching) {
       if (e.touches.length > 0) return;
       lightboxPinching = false;
@@ -1673,7 +1805,7 @@
 
   // ---- Desktop: hover to zoom ----
   mainFrame.addEventListener('mouseenter', () => {
-    if (!canHover.matches) return;
+    if (!canHover.matches || images[activeIdx].type === 'video') return;
     mainFrame.classList.add('zooming');
   });
   mainFrame.addEventListener('mouseleave', () => {
@@ -1681,7 +1813,7 @@
     mainFrame.classList.remove('zooming');
   });
   mainFrame.addEventListener('mousemove', (e) => {
-    if (!canHover.matches) return;
+    if (!canHover.matches || images[activeIdx].type === 'video') return;
     panZoom(e.clientX, e.clientY);
   });
 
@@ -1693,7 +1825,7 @@
   let pinchStartZoom = 1;
 
   mainFrame.addEventListener('touchstart', (e) => {
-    if (canHover.matches) return;
+    if (canHover.matches || images[activeIdx].type === 'video') return;
     if (e.target.closest('button')) return;
     if (e.touches.length === 1 && !pinching) {
       const t = e.touches[0];
@@ -1713,7 +1845,7 @@
   }, { passive: true });
 
   mainFrame.addEventListener('touchmove', (e) => {
-    if (canHover.matches) return;
+    if (canHover.matches || images[activeIdx].type === 'video') return;
     if (e.touches.length === 2) {
       pinching = true;
       const midpoint = touchMidpoint(e.touches);
@@ -1752,7 +1884,7 @@
   }, { passive: false });
 
   mainFrame.addEventListener('touchend', (e) => {
-    if (canHover.matches) return;
+    if (canHover.matches || images[activeIdx].type === 'video') return;
     if (pinching) {
       if (e.touches.length > 0) return;
       pinching = false;
